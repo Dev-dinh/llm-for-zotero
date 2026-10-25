@@ -9613,9 +9613,17 @@ export async function sendQuestion(
         reportWebChatSendOutcome("cancelled");
         return;
       }
+      let effectiveQuestion = question;
+      if (!opts.webchatSendPdf && item && (item as any).isRegularItem?.()) {
+        const itemTitle = (item as any).getField?.("title") || "";
+        if (itemTitle && !question.includes(itemTitle)) {
+          effectiveQuestion = `[Source Reference: "${itemTitle}"]\n${question}`;
+        }
+      }
+
       const answer = await sendWebChatQuestion({
         item,
-        question,
+        question: effectiveQuestion,
         host: getRelayBaseUrl(),
         sendPdf: opts.webchatSendPdf === true,
         pdfPaperContexts: normalizedWebChatPdfPaperContexts,

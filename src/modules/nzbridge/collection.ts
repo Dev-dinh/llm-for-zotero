@@ -615,11 +615,9 @@ async function exportSingleItem(
     const defaultUnit = fileUnits[defaultIdx];
     defaultUnit.isDefault = true;
     const otherFiles = fileUnits.filter((_, i) => i !== defaultIdx);
-    // Extra units for file items: remaining files + attachment-sourced URLs
-    // (linked-URL attachments, snapshot source URLs, file-attachment URLs).
-    const urlUnits = candidates
-      .filter((c) => c.attachmentId !== 0)
-      .map((c) => candidateToUnit(c, false));
+    // Units for file items: files + all URL/DOI/web-source candidates
+    // so the user can choose whether to sync the full PDF or the web source/DOI.
+    const urlUnits = candidates.map((c) => candidateToUnit(c, false));
 
     return {
       itemId: item.id,
