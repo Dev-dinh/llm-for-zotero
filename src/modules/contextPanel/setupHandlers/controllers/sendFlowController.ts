@@ -856,7 +856,12 @@ export function createSendFlowController(deps: SendFlowControllerDeps): {
       const webchatForceNewChat = isWebChat
         ? (deps.consumeWebChatForceNewChatIntent?.() ?? false)
         : false;
-      const webchatSendPdf = isWebChat
+      const isNotebookLm = Boolean(
+        isWebChat &&
+          (earlyProfile?.model?.toLowerCase().includes("notebooklm") ||
+            earlyProfile?.providerLabel?.toLowerCase().includes("notebooklm"))
+      );
+      const webchatSendPdf = isWebChat && !isNotebookLm
         ? activeWebChatPdfPaperContexts.length > 0
         : false;
 

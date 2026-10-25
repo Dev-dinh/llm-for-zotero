@@ -19405,3 +19405,55 @@ item-pane-sidenav .llm-persistent-rail-entry[hidden] {
   color: var(--llm-history-library-chip-text);
   background: var(--llm-history-library-chip-bg);
 }
+
+/* ─── Soviet Constructivist & Komsomol Theme Overrides ─────────────── */
+.llm-panel,
+.llm-dedicated-chat-pane,
+.llm-chat-shell {
+  --material-background: #F4F1EA !important;
+  --material-card: #FFFFFF !important;
+  --fill-secondary: #E8E3D7 !important;
+  border-radius: 0 !important;
+}
+
+.llm-panel * {
+  border-radius: 0 !important;
+}
+
+.llm-panel .llm-model-select,
+.llm-panel .llm-model-badge {
+  border-radius: 0 !important;
+  border: 1.5px solid #1A1A1A !important;
+  font-weight: bold !important;
+  letter-spacing: 0.5px !important;
+  background: #FFFFFF !important;
+}
+
+.llm-panel .llm-shortcut-chip,
+.llm-panel .llm-quick-action,
+.llm-panel button {
+  border-radius: 0 !important;
+  border: 1px solid #1A1A1A !important;
+}
+
+.llm-panel button.primary,
+.llm-panel .llm-send-btn {
+  background: #CC2B2B !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid #1A1A1A !important;
+}
+
+.llm-panel .llm-message-user {
+  border: 1.5px solid #1A1A1A !important;
+  background: #EAE6DC !important;
+  border-radius: 0 !important;
+}
+
+.llm-panel .llm-message-assistant {
+  border-left: 3.5px solid #CC2B2B !important;
+  border-top: 1px solid #1A1A1A !important;
+  border-right: 1px solid #1A1A1A !important;
+  border-bottom: 1px solid #1A1A1A !important;
+  background: #FFFFFF !important;
+  border-radius: 0 !important;
+}
