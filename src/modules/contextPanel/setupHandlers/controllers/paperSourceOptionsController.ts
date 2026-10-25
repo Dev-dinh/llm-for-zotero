@@ -97,7 +97,7 @@ export type BuildPaperSourceOptionsParams = {
 export function filterPaperSourceOptionsForWebChat<
   T extends PaperSourceModeOption,
 >(sourceOptions: readonly T[]): T[] {
-  return sourceOptions.filter((sourceOption) => sourceOption.mode === "pdf");
+  return [...sourceOptions];
 }
 
 export function resolveMineruSourceOptionState(input: {
@@ -325,7 +325,14 @@ function buildPdfAttachmentSourceOptions(params: {
         ? undefined
         : picker.fullPdfUnsupportedMessage,
   };
-  if (picker.webChatMode) return [pdfOption];
+  const textOption: PaperSourceOption = {
+    mode: "text",
+    badge: getContextSourceModeBadgeLabel("text") || "Text",
+    paperContext: { ...baseContext, contentSourceMode: "text" },
+    title: baseContext.title,
+    description: `${attachmentTitle} - ${getContextSourceModeHumanLabel("text")}`,
+  };
+  if (picker.webChatMode) return [textOption, pdfOption];
 
   const mineruOptionState = resolveMineruOptionState(baseContext, picker);
   const mineruDisabledReason = shouldDisableMineruParsingAction({

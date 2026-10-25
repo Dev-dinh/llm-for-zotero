@@ -451,6 +451,18 @@ export function attachComposePreviewInteractionController(
       if (!clearBtn) return;
       event.preventDefault();
       event.stopPropagation();
+
+      // If user clicks (×) on the autoloaded item chip or any chip with index < 0,
+      // drop the auto-attached item/PDF so the user can send without PDF or choose custom source
+      if (clearBtn.dataset.autoLoaded === "true" || clearBtn.dataset.paperContextIndex === "-1") {
+        clearSelectedPaperState(item.id);
+        composeContextStore.initializedConversations.mark(item.id);
+        deps.updatePaperPreviewPreservingScroll();
+        setStatus("PDF attachment dropped. Querying notebook sources.", "ready");
+        deps.closePaperChipMenu();
+        return;
+      }
+
       const index = Number.parseInt(
         clearBtn.dataset.paperContextIndex || "",
         10,
@@ -464,6 +476,10 @@ export function attachComposePreviewInteractionController(
         index < 0 ||
         index >= selectedPapers.length
       ) {
+        clearSelectedPaperState(item.id);
+        composeContextStore.initializedConversations.mark(item.id);
+        deps.updatePaperPreviewPreservingScroll();
+        deps.closePaperChipMenu();
         return;
       }
       const removedPaper = selectedPapers[index];

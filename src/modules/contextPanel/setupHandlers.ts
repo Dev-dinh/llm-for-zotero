@@ -4180,21 +4180,23 @@ export function setupHandlers(
     chipLabel.append(chipIcon, chipText);
     chipHeader.append(chipLabel);
 
-    if (removable) {
-      const removeBtn = createElement(
-        ownerDoc,
-        "button",
-        "llm-remove-img-btn llm-paper-context-clear",
-        {
-          type: "button",
-          textContent: "×",
-          title: `Remove ${paperContext.title}`,
-        },
-      ) as HTMLButtonElement;
-      removeBtn.dataset.paperContextIndex = `${options?.removableIndex ?? -1}`;
-      removeBtn.setAttribute("aria-label", `Remove ${paperContext.title}`);
-      chipHeader.append(removeBtn);
+    // Both manual chips and autoloaded chips can be dismissed/dropped by user
+    const removeBtn = createElement(
+      ownerDoc,
+      "button",
+      "llm-remove-img-btn llm-paper-context-clear",
+      {
+        type: "button",
+        textContent: "×",
+        title: `Remove ${paperContext.title}`,
+      },
+    ) as HTMLButtonElement;
+    removeBtn.dataset.paperContextIndex = `${options?.removableIndex ?? -1}`;
+    if (options?.autoLoaded) {
+      removeBtn.dataset.autoLoaded = "true";
     }
+    removeBtn.setAttribute("aria-label", `Remove ${paperContext.title}`);
+    chipHeader.append(removeBtn);
 
     // Inline expanded paper card (shown on hover via CSS, or sticky when .expanded class present)
     const chipExpanded = createElement(
