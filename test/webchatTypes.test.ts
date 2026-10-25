@@ -114,4 +114,53 @@ describe("webchat target types", function () {
       ),
     );
   });
+
+  it("registers NotebookLM and validates its conversation routes", function () {
+    assert.deepInclude(getWebChatTarget("notebooklm"), {
+      id: "notebooklm",
+      label: "NotebookLM",
+      modelName: "notebooklm.google.com",
+      displayName: "notebooklm",
+      answerCapture: "dom",
+    });
+    assert.equal(
+      getWebChatTargetByModelName("notebooklm.google.com")?.id,
+      "notebooklm",
+    );
+
+    const uuid = "a969f72e-7f8a-4b54-b537-8aca8bacf8a0";
+    assert.equal(
+      getWebChatTargetByUrl(`https://notebooklm.google.com/notebook/${uuid}`)?.id,
+      "notebooklm",
+    );
+    assert.equal(
+      getWebChatTargetByUrl(`https://notebook.google.com/notebook/${uuid}`)?.id,
+      "notebooklm",
+    );
+    assert.equal(
+      getWebChatTargetByUrl(`https://notebooklm.google.com.evil.test/notebook/${uuid}`)?.id,
+      undefined,
+    );
+
+    assert.equal(
+      getWebChatConversationId(
+        `https://notebooklm.google.com/notebook/${uuid}?addSource=true`,
+        "notebooklm",
+      ),
+      uuid,
+    );
+    assert.equal(
+      getWebChatConversationId(
+        `https://notebook.google.com/notebook/${uuid}`,
+        "notebooklm",
+      ),
+      uuid,
+    );
+    assert.isNull(
+      getWebChatConversationId(
+        "https://notebooklm.google.com/notebook/not-a-valid-uuid",
+        "notebooklm",
+      ),
+    );
+  });
 });

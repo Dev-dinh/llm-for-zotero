@@ -715,6 +715,28 @@ function validateTargetCapabilityForDispatch(
     return null;
   }
 
+  if (targetId === "notebooklm") {
+    const reportedUrl = status.url || status.chatUrl;
+    if (!reportedUrl || !isWebChatUrlForTarget(reportedUrl, "notebooklm")) {
+      return "Sync for Zotero has not reported a canonical NotebookLM URL for the active tab. Open notebooklm.google.com and try again.";
+    }
+    if (!status.supportedTargets.includes("notebooklm")) {
+      return "The installed Sync for Zotero browser extension does not advertise NotebookLM support. Update the extension, reload NotebookLM, and try again.";
+    }
+    if (status.answerCapture !== "dom") {
+      return "The installed Sync for Zotero browser extension has not advertised NotebookLM DOM answer capture. Update the extension, reload NotebookLM, and try again.";
+    }
+    if (
+      !status.contentScriptAliveExplicit ||
+      !status.composerFoundExplicit ||
+      !status.contentScriptAlive ||
+      !status.composerFound
+    ) {
+      return "Sync for Zotero must explicitly report a ready NotebookLM content script and composer. Reload NotebookLM and try again.";
+    }
+    return null;
+  }
+
   // Legacy ChatGPT and DeepSeek extensions did not advertise these additive
   // capability fields. Their existing network bridge remains authoritative.
   if (!status.composerFound) {
@@ -736,7 +758,7 @@ function validateDeliveryContractForDispatch(
   // Legacy clients may omit the delivery contract for existing sites. Gemini
   // is never inferred from that legacy shape and still requires an explicit
   // target/capture advertisement.
-  if (requestedVersion === 0 && targetId !== "gemini") return null;
+  if (requestedVersion === 0 && targetId !== "gemini" && targetId !== "notebooklm") return null;
   if (requestedVersion !== ATTACHMENT_DELIVERY_CONTRACT_VERSION) {
     return `Unsupported WebChat delivery contract version ${requestedVersion}.`;
   }
@@ -833,7 +855,11 @@ function resolveExpectedChatBinding(
       expectedChatId = derivedChatId;
     }
     const validIdPattern =
-      targetId === "gemini" ? /^[a-f0-9]{16}$/ : /^[A-Za-z0-9_-]+$/;
+      targetId === "gemini"
+        ? /^[a-f0-9]{16}$/
+        : targetId === "notebooklm"
+          ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+          : /^[A-Za-z0-9_-]+$/;
     if (expectedChatId && !validIdPattern.test(expectedChatId)) {
       return {
         expectedChatUrl: null,

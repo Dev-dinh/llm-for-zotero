@@ -14,6 +14,8 @@ export type WebChatTargetEntry = {
   modelName: string;
   /** Exact HTTPS host accepted from extension heartbeats and history URLs. */
   hostname: string;
+  /** Optional secondary hosts accepted for this target (e.g. notebook.google.com for NotebookLM). */
+  alternateHostnames?: readonly string[];
   /** Short UI label for tight status/header surfaces. */
   displayName: string;
   /** Provider-specific, observed path shape for an existing conversation. */
@@ -57,6 +59,18 @@ export const WEBCHAT_TARGETS = [
     conversationPathPattern: /^\/app\/([a-f0-9]{16})\/?$/,
     answerCapture: "dom",
   },
+  {
+    id: "notebooklm",
+    label: "NotebookLM",
+    defaultHost: "http://127.0.0.1:23119/llm-for-zotero/webchat",
+    modelName: "notebooklm.google.com",
+    hostname: "notebooklm.google.com",
+    alternateHostnames: ["notebook.google.com"],
+    displayName: "notebooklm",
+    conversationPathPattern:
+      /^\/notebook\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i,
+    answerCapture: "dom",
+  },
 ] as const satisfies readonly WebChatTargetEntry[];
 
 export type WebChatTarget = (typeof WEBCHAT_TARGETS)[number]["id"];
@@ -87,7 +101,13 @@ export function getWebChatTargetByUrl(
     ) {
       return undefined;
     }
-    return WEBCHAT_TARGETS.find((target) => parsed.host === target.hostname);
+    return WEBCHAT_TARGETS.find((target: WebChatTargetEntry) => {
+      if (parsed.host === target.hostname) return true;
+      if (target.alternateHostnames && target.alternateHostnames.includes(parsed.host)) {
+        return true;
+      }
+      return false;
+    });
   } catch {
     return undefined;
   }
@@ -113,7 +133,7 @@ export function getWebChatConversationId(
     const match = new URL(value as string).pathname.match(
       target.conversationPathPattern,
     );
-    return match?.[1] || null;
+    return match?.[1]?.toLowerCase() || null;
   } catch {
     return null;
   }
