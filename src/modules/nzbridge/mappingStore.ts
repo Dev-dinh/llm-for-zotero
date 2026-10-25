@@ -1,0 +1,117 @@
+/**
+ * Persistent storage for collection-to-notebook mappings.
+ * Stored as JSON in Zotero preferences.
+ */
+
+import { N2Z_PREFS_PREFIX } from "./constants";
+
+export interface CollectionMapping {
+  collectionId: number;
+  collectionName: string;
+  libraryId?: number;
+  libraryName?: string;
+  notebookId: string;
+  notebookUrl: string;
+  lastSyncForward: string | null;
+  lastSyncBackward: string | null;
+  // Per-item upload record, keyed by Zotero itemKey. Historically a bare
+  // timestamp string; newer syncs store an object with the captured NotebookLM
+  // source identity ({ at, name, label, url, faviconDomain }) for removal
+  // detection. Stored as JSON, so the union round-trips faithfully.
+  syncedItemHashes: Record<string, string | Record<string, unknown>>;
+  importedNoteIds: string[];
+}
+
+const PREF_KEY = "mappings";
+
+function readMappings(): CollectionMapping[] {
+  try {
+    const json = Zotero.Prefs.get(
+      `${N2Z_PREFS_PREFIX}.${PREF_KEY}`,
+      true,
+    ) as string;
+    return JSON.parse(json || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function writeMappings(mappings: CollectionMapping[]): void {
+  Zotero.Prefs.set(
+    `${N2Z_PREFS_PREFIX}.${PREF_KEY}`,
+    JSON.stringify(mappings),
+    true,
+  );
+}
+
+export function getMappings(): CollectionMapping[] {
+  return readMappings();
+}
+
+export function getMapping(
+  collectionId: number,
+): CollectionMapping | null {
+  return readMappings().find((m) => m.collectionId === collectionId) ?? null;
+}
+
+export function setMapping(mapping: CollectionMapping): void {
+  const mappings = readMappings();
+  const idx = mappings.findIndex(
+    (m) => m.collectionId === mapping.collectionId,
+  );
+  if (idx >= 0) {
+    mappings[idx] = mapping;
+  } else {
+    mappings.push(mapping);
+  }
+  writeMappings(mappings);
+}
+
+export function removeMapping(collectionId: number): void {
+  const mappings = readMappings().filter(
+    (m) => m.collectionId !== collectionId,
+  );
+  writeMappings(mappings);
+}
+
+export function updateSyncTimestamp(
+  collectionId: number,
+  direction: "forward" | "backward",
+): void {
+  const mappings = readMappings();
+  const mapping = mappings.find((m) => m.collectionId === collectionId);
+  if (mapping) {
+    const now = new Date().toISOString();
+    if (direction === "forward") {
+      mapping.lastSyncForward = now;
+    } else {
+      mapping.lastSyncBackward = now;
+    }
+    writeMappings(mappings);
+  }
+}
+
+export function addSyncedItemHash(
+  collectionId: number,
+  itemKey: string,
+  hash: string | Record<string, unknown>,
+): void {
+  const mappings = readMappings();
+  const mapping = mappings.find((m) => m.collectionId === collectionId);
+  if (mapping) {
+    mapping.syncedItemHashes[itemKey] = hash;
+    writeMappings(mappings);
+  }
+}
+
+export function addImportedNoteId(
+  collectionId: number,
+  noteId: string,
+): void {
+  const mappings = readMappings();
+  const mapping = mappings.find((m) => m.collectionId === collectionId);
+  if (mapping && !mapping.importedNoteIds.includes(noteId)) {
+    mapping.importedNoteIds.push(noteId);
+    writeMappings(mappings);
+  }
+}

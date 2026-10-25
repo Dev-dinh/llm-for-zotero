@@ -342,6 +342,14 @@ function scheduleWebChatRelayRegistration(): void {
   });
 }
 
+function scheduleNZBridgeRegistration(): void {
+  runDeferredStartupTask("NZBridge registration", async () => {
+    const { registerServer, registerMenus } = await import("./modules/nzbridge");
+    registerServer();
+    registerMenus();
+  });
+}
+
 function scheduleMineruAutoWatchRegistration(): void {
   runDeferredStartupTask("MinerU auto-watch", async () => {
     const { startAutoWatch } = await import("./modules/mineruAutoWatch");
@@ -392,6 +400,7 @@ function scheduleDeferredStartupWork(
   scheduleUserSkillsLoad();
   scheduleAttachmentMaintenance();
   scheduleWebChatRelayRegistration();
+  scheduleNZBridgeRegistration();
   scheduleMineruAutoWatchRegistration();
   scheduleLibraryTextIndexStartup();
   scheduleModelCapabilityRefresh();
@@ -750,6 +759,12 @@ async function shutdownPlugin(reason: PluginLifecycleReason): Promise<void> {
   try {
     const { unregisterWebChatRelay } = require("./webchat/relayServer");
     unregisterWebChatRelay();
+  } catch {
+    /* ignore if module not loaded */
+  }
+  try {
+    const { unregisterServer } = require("./modules/nzbridge/server");
+    unregisterServer();
   } catch {
     /* ignore if module not loaded */
   }
